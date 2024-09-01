@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.authtoken.views import obtain_auth_token
+BASE_URL = 'bcare/'
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')),
-    path('api/preferences/', include('preferences.urls')),
+    path(f'{BASE_URL}admin/', admin.site.urls),
+    path(f'{BASE_URL}users/', include('users.urls')),
+    path(f'{BASE_URL}preferences/', include('preferences.urls')),
+    path('api-token-auth/', obtain_auth_token),  # Endpoint para obtener el token
 ]
