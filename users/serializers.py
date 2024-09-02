@@ -4,18 +4,10 @@ from .models import UserProfile
 from preferences.serializers import PreferenceSerializer
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = serializers.CharField(required=True),
-    name = serializers.CharField(required=True),
-    birth_date = serializers.CharField (required=True),
-    phone = serializers.CharField(required=True)
-    preferences = PreferenceSerializer(many=True, required=False)  # Permite crear y actualizar preferencias
-
     class Meta:
         model = UserProfile
-        fields = ['user', 'name', 'birth_date', 'phone', 'preferences']
-        extra_kwargs = {
-            'user': {'write_only': True},  # Solo puedes escribir, no leer el campo 'user'
-        }
+        fields = ['first_name','username','id','birth_date', 'phone', 'preferences']
+
 
     def create(self, validated_data):
         preferences_data = validated_data.pop('preferences', [])
@@ -36,6 +28,20 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
 
 class UserDetailSerializer(serializers.ModelSerializer):
+    birth_date = serializers.DateField(format='%d-%m-%Y', input_formats=['%Y-%m-%d'])
     class Meta:
         model = UserProfile
-        fields = ['name', 'birth_date', 'phone']
+        fields = ['first_name', 'birth_date', 'phone']
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    birth_date = serializers.DateField(format='%d-%m-%Y', input_formats=['%Y-%m-%d'])
+    class Meta:
+        model = UserProfile
+        fields = ['first_name', 'birth_date', 'phone']
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.birth_date = validated_data.get('birth_date', instance.birth_date)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.save()
+        return instance

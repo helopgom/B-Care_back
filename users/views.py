@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions, generics, status
 from .models import UserProfile
-from .serializers import UserProfileSerializer, LoginSerializer, UserDetailSerializer
+from .serializers import UserProfileSerializer, LoginSerializer, UserDetailSerializer, UserProfileUpdateSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
@@ -40,6 +40,14 @@ class UserDetailView(generics.RetrieveAPIView):
     def get_object(self):
         user = self.request.user
         if user.is_authenticated:
-            print(f"Authenticated user: {user}")
+            print(f"Authenticated user: {user}, first_name: {user.first_name}")
             return user
         return None
+
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
