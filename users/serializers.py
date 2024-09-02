@@ -1,9 +1,13 @@
 from rest_framework import serializers
+from preferences.models import Preference
 from .models import UserProfile
-from preferences.serializers import PreferenceSerializer  # Asegúrate de importar tu PreferenceSerializer
-from django.contrib.auth.models import User
+from preferences.serializers import PreferenceSerializer
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(required=True),
+    name = serializers.CharField(required=True),
+    birth_date = serializers.CharField (required=True),
+    phone = serializers.CharField(required=True)
     preferences = PreferenceSerializer(many=True, required=False)  # Permite crear y actualizar preferencias
 
     class Meta:
@@ -26,3 +30,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             user_profile.preferences.add(preference)
 
         return user_profile
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['name', 'birth_date', 'phone']
