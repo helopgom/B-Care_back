@@ -33,15 +33,18 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['first_name', 'birth_date', 'phone']
 
+
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    birth_date = serializers.DateField(format='%d-%m-%Y', input_formats=['%Y-%m-%d'])
+    birth_date = serializers.DateField(format='%Y-%m-%d', input_formats=['%Y-%m-%d', '%d-%m-%Y'], required=False)
+    phone = serializers.CharField(max_length=15, required=False)
+
     class Meta:
         model = UserProfile
         fields = ['first_name', 'birth_date', 'phone']
 
     def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.birth_date = validated_data.get('birth_date', instance.birth_date)
-        instance.phone = validated_data.get('phone', instance.phone)
+        # Iterar sobre los campos y actualizar solo los que fueron proporcionados
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
         return instance

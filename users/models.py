@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from preferences.models import Preference
 
 class UserProfile(AbstractUser):
-    birth_date = models.DateField(default= "1993-07-19")
+    birth_date = models.DateField()
     phone = models.CharField(max_length=15)
     preferences = models.ManyToManyField(Preference, blank=True)
 

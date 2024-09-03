@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, generics, status
+from rest_framework import viewsets, permissions, generics, serializers
 from .models import UserProfile
 from .serializers import UserProfileSerializer, LoginSerializer, UserDetailSerializer, UserProfileUpdateSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -44,10 +44,30 @@ class UserDetailView(generics.RetrieveAPIView):
             return user
         return None
 
+from rest_framework.response import Response
+from rest_framework import status
+
 class UserUpdateView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return self.request.user
+        user = self.request.user
+        if user.is_authenticated:
+            print(f"Update request received for user: {user.username}")
+            return user
+        return None
+
+    def update(self, request, *args, **kwargs):
+        try:
+            print(f"Received data: {request.data}")
+            response = super().update(request, *args, **kwargs)
+            return response
+        except serializers.ValidationError as e:
+            print(f"Validation Error: {e.detail}")
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Unexpected Error: {str(e)}")
+            return Response({"detail": "Unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
