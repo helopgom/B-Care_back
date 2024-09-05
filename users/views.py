@@ -1,73 +1,50 @@
-from rest_framework import viewsets, permissions, generics, serializers
-from .models import UserProfile
-from .serializers import UserProfileSerializer, LoginSerializer, UserDetailSerializer, UserProfileUpdateSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
+from rest_framework import generics, permissions, views, status
+from .serializers import RegisterSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from django.contrib.auth import authenticate
+from rest_framework import viewsets, status
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from .serializers import UserProfileSerializer
+from .models import UserProfile
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework import permissions
+from .serializers import UserSerializer
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+class UserProfileViewSet(viewsets.ModelViewSet):
+   queryset = User.objects.all()
+   serializer_class = UserProfileSerializer
+   permission_classes = [IsAuthenticated]
 
+   def get_queryset(self):
+    # Devolver solo el perfil del usuario autenticado
+        return UserProfile.objects.filter(user=self.request.user)
 
-class UserProfileViewSet(generics.CreateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.AllowAny]
-
-class UserLoginView(APIView):
-
+class RegisterView(APIView):
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data.get('username')
-            password = serializer.validated_data.get('password')
-
-            user = authenticate(request, username=username, password=password)
-            if user:
-                Token.objects.filter(user=user).delete()
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            serializer.save()
+            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserDetailView(generics.RetrieveAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserDetailSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        user = self.request.user
-        if user.is_authenticated:
-            print(f"Authenticated user: {user}, first_name: {user.first_name}")
-            return user
-        return None
+class LogoutView(views.APIView):
+   permission_classes = [permissions.IsAuthenticated]
 
-from rest_framework.response import Response
-from rest_framework import status
 
-class UserUpdateView(generics.UpdateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self):
-        user = self.request.user
-        if user.is_authenticated:
-            print(f"Update request received for user: {user.username}")
-            return user
-        return None
-
-    def update(self, request, *args, **kwargs):
-        try:
-            print(f"Received data: {request.data}")
-            response = super().update(request, *args, **kwargs)
-            return response
-        except serializers.ValidationError as e:
-            print(f"Validation Error: {e.detail}")
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"Unexpected Error: {str(e)}")
-            return Response({"detail": "Unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+   def post(self, request):
+       try:
+           token = Token.objects.get(user=request.user)
+           token.delete()
+           return Response({"message": "Token deleted"}, status=status.HTTP_200_OK)
+       except Token.DoesNotExist:
+           return Response({"message": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
 

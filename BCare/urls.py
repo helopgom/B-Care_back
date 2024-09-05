@@ -5,5 +5,5 @@ BASE_URL = 'api/v1/'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(BASE_URL, include('users.urls')),
-    path(BASE_URL, include('preferences.urls')),
+
 ]

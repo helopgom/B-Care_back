@@ -1,50 +1,40 @@
-from rest_framework import serializers
-from preferences.models import Preference
 from .models import UserProfile
-from preferences.serializers import PreferenceSerializer
+from django.contrib.auth.models import User
+from rest_framework import serializers
+class UserSerializer(serializers.ModelSerializer):
+    class Meta: model = User
+    fields = ['id', 'username', 'email']
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['first_name','username','id','birth_date', 'phone', 'preferences']
-
-
-    def create(self, validated_data):
-        preferences_data = validated_data.pop('preferences', [])
-        user = validated_data.pop('user', None)
-
-        # Crea el perfil del usuario
-        user_profile = UserProfile.objects.create(user=user, **validated_data)
-
-        # Crea y asigna las preferencias si hay alguna
-        for preference_data in preferences_data:
-            preference, created = Preference.objects.get_or_create(**preference_data)
-            user_profile.preferences.add(preference)
-
-        return user_profile
-
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    password = serializers.CharField(required=True)
-
-class UserDetailSerializer(serializers.ModelSerializer):
     birth_date = serializers.DateField(format='%d-%m-%Y', input_formats=['%Y-%m-%d'])
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'birth_date', 'phone']
+        fields = ['id','name', 'birth_date', 'phone', 'preferences']
 
 
-class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    birth_date = serializers.DateField(format='%Y-%m-%d', input_formats=['%Y-%m-%d', '%d-%m-%Y'], required=False)
-    phone = serializers.CharField(max_length=15, required=False)
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    phone = serializers.CharField(write_only=True, required=True)
+    name = serializers.CharField(write_only=True, required=True)
+    birth_date = serializers.DateField(write_only=True, required=True)
 
     class Meta:
-        model = UserProfile
-        fields = ['first_name', 'birth_date', 'phone']
+        model = User
+        fields = ['username', 'password', 'phone', 'name', 'birth_date']  # Añadimos phone a los campos
 
-    def update(self, instance, validated_data):
-        # Iterar sobre los campos y actualizar solo los que fueron proporcionados
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+    def create(self, validated_data):
+        # Primero, creamos el usuario
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password']
+        )
+
+        # Luego, creamos el perfil de usuario y asignamos el campo 'phone'
+        UserProfile.objects.create(
+            user=user,  # Relacionamos el perfil con el usuario
+            phone=validated_data['phone'],
+            name=validated_data['name'],
+            birth_date=validated_data['birth_date']
+        )
+
+        return user
