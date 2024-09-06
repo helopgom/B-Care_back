@@ -4,22 +4,26 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.conf import settings
 
-openai.api_key = settings.OPENAI_API_KEY
-
+# Asegurarte de que estás utilizando la API Key correcta
 @csrf_exempt
 def conversacion_ia(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        user_input = data.get('user_text')
+        try:
+            data = json.loads(request.body)
+            user_input = data.get('user_text')
 
-        # Generar la respuesta usando GPT-4
-        response = openai.Completion.create(
-            engine="gpt-4",
-            prompt=f"El usuario dice: {user_input}, responde acorde a sus intereses.",
-            max_tokens=150
-        )
+            # Usar el nuevo método openai.ChatCompletion.create
+            response = openai.ChatCompletion.create(
+                model="gpt-4",  # O el modelo que tengas acceso, como gpt-3.5-turbo
+                messages=[
+                    {"role": "system", "content": "Tú eres un asistente útil."},
+                    {"role": "user", "content": user_input},
+                ]
+            )
 
-        return JsonResponse({'response': response.choices[0].text.strip()})
+            return JsonResponse({'response': response['choices'][0]['message']['content']})
+        except Exception as e:
+            # Devuelve más información sobre el error para depuración
+            return JsonResponse({'error': str(e)}, status=500)
 
-    # Si es una solicitud GET, devolver un mensaje indicando que solo POST está permitido
     return HttpResponse("Método no permitido. Usa POST para enviar datos.", status=405)
