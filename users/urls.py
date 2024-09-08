@@ -12,6 +12,6 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', obtain_auth_token, name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('api/', include(router.urls)),
+    path('conversation/', include('conversation.urls')),
 
 ]

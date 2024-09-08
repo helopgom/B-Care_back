@@ -1,8 +1,8 @@
 from django.http import JsonResponse, HttpResponse
-import openai
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.conf import settings
+import os
+from openai import OpenAI
 
 # Asegurarte de que estás utilizando la API Key correcta
 @csrf_exempt
@@ -11,19 +11,26 @@ def conversacion_ia(request):
         try:
             data = json.loads(request.body)
             user_input = data.get('user_text')
-
+            print(user_input)
             # Usar el nuevo método openai.ChatCompletion.create
-            response = openai.ChatCompletion.create(
-                model="gpt-4",  # O el modelo que tengas acceso, como gpt-3.5-turbo
-                messages=[
-                    {"role": "system", "content": "Tú eres un asistente útil."},
-                    {"role": "user", "content": user_input},
-                ]
+            client = OpenAI(
+                # This is the default and can be omitted
+                api_key=os.environ.get("OPENAI_API_KEY"),
+
             )
 
-            return JsonResponse({'response': response['choices'][0]['message']['content']})
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": user_input,
+                    }
+                ],
+                model="gpt-4",
+            )
+
+            return JsonResponse({'response': chat_completion.choices[0].message.content})
         except Exception as e:
-            # Devuelve más información sobre el error para depuración
             return JsonResponse({'error': str(e)}, status=500)
 
-    return HttpResponse("Método no permitido. Usa POST para enviar datos.", status=405)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
