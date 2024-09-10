@@ -21,7 +21,12 @@ def conversacion_ia(request):
 
             data = json.loads(request.body)
             user_input = data.get('user_text')
-            prompt = f"Eres un motor conversacional llamado B-Care para {user_profile.name}, una persona mayor que está sola y le apetece hablar. Al acabar de hablar de forma coherente , pregunta sobre alguno de sus temas de interés como {user_profile.preferences or ''}.Si no tiene preferencias, o si estas son nulas, o none sigue la conversación con lo que la persona te pregunta. Responde con un lenguaje sencillo y con respuestas que no superen las 200 palabras.Su fecha de cumpleaños es {user_profile.birth_date}, lo puedes felicitar cuando sea ese día. El usuario ha dicho lo siguiente: {user_input}"
+            prompt = (f"Eres un motor conversacional llamado B-Care para {user_profile.name}, una persona mayor que está sola "
+                f"y le apetece hablar. Responde de forma muy lenta y relajada. Utiliza frases simples y "
+                f"asegúrate de que la respuesta no supere las 100 palabras. Al final de cada respuesta, haz una pregunta "
+                f"de seguimiento, pero de forma calmada. Si no sabes qué preguntar, sigue la conversación con lo que la "
+                f"persona te pregunte.El usuario ha dicho lo siguiente: {user_input}."
+            )
             print(user_input)
             # Usar el nuevo método openai.ChatCompletion.create
             client = OpenAI(
@@ -39,10 +44,12 @@ def conversacion_ia(request):
                 ],
                 model="gpt-4",
             )
+            gpt_response = chat_completion.choices[0].message.content
 
-            return JsonResponse({'response': chat_completion.choices[0].message.content})
+            ssml_response = f"<speak><prosody rate='0.1'>{gpt_response}</prosody></speak>"
+            return JsonResponse({'response': ssml_response})
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
-
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
