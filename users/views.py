@@ -3,15 +3,14 @@ from .serializers import RegisterSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import viewsets, status
-from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from .serializers import UserProfileSerializer
 from .models import UserProfile
 from django.contrib.auth.models import User
-from rest_framework import viewsets
-from rest_framework import permissions
 from .serializers import UserSerializer
+from rest_framework.exceptions import NotFound
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -30,10 +29,12 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            try:
+                serializer.save()
+                return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class LogoutView(views.APIView):
@@ -46,5 +47,5 @@ class LogoutView(views.APIView):
            token.delete()
            return Response({"message": "Token deleted"}, status=status.HTTP_200_OK)
        except Token.DoesNotExist:
-           return Response({"message": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
+           return Response({"message": "Token not found"}, status=status.HTTP_404_NOT_FOUND)
 
