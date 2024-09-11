@@ -85,18 +85,18 @@ Design Tool: Figma
     ```
 4. **Configure the database:**
  Create a database in PostgreSQL with same name the proyect. Add to settings.py:
-```bash
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'nameBBDD',
-        'USER': 'your BBDD user',
-        'PASSWORD': 'your BBDD password',
-        'HOST': 'localhost', #(usually is the same)
-        'PORT': '5432' #(usually is the same)
-    }
-} 
-   ```
+   ```bash
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.postgresql_psycopg2',
+           'NAME': 'nameBBDD',
+           'USER': 'your BBDD user',
+           'PASSWORD': 'your BBDD password',
+           'HOST': 'localhost', #(usually is the same)
+           'PORT': '5432' #(usually is the same)
+       }
+   } 
+      ```
 5. **Perform the migrations and run server:**
     ```bash
     python manage.py makemigrations
