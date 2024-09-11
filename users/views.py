@@ -22,7 +22,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
    permission_classes = [IsAuthenticated]
 
    def get_queryset(self):
-    # Devolver solo el perfil del usuario autenticado
         return UserProfile.objects.filter(user=self.request.user)
 
 class RegisterView(APIView):

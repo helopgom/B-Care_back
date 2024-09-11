@@ -23,13 +23,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'phone', 'name', 'birth_date']  # Añadimos phone a los campos
 
     def create(self, validated_data):
-        # Primero, creamos el usuario
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password']
         )
 
-        # Luego, creamos el perfil de usuario y asignamos el campo 'phone'
         UserProfile.objects.create(
             user=user,  # Relacionamos el perfil con el usuario
             phone=validated_data['phone'],

@@ -15,7 +15,6 @@ from rest_framework.decorators import api_view, permission_classes
 def conversacion_ia(request):
     if request.method == 'POST':
         try:
-            # Obtener el perfil del usuario autenticado
             user = request.user
             user_profile = UserProfile.objects.get(user=user)
 
@@ -28,9 +27,7 @@ def conversacion_ia(request):
                 f"persona te pregunte.El usuario ha dicho lo siguiente: {user_input}."
             )
             print(user_input)
-            # Usar el nuevo método openai.ChatCompletion.create
             client = OpenAI(
-                # This is the default and can be omitted
                 api_key=os.environ.get("OPENAI_API_KEY"),
 
             )
